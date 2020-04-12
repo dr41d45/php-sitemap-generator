@@ -68,7 +68,7 @@ $generator->submitSitemap();
 
 ### Testing
 
-Run tests with command:
+Run tests with command (tests may take some time):
 
 ```bash
 $ ./vendor/bin/phpunit

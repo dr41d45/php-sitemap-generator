@@ -10,7 +10,6 @@ use LengthException;
 use OutOfRangeException;
 use RuntimeException;
 use SimpleXMLElement;
-use SplFixedArray;
 
 interface IFileSystem
 {
@@ -62,11 +61,11 @@ class SitemapGenerator
      */
     const MAX_URL_LEN = 2048;
 
-    const ATTR_KEY_LOC = 0;
-    const ATTR_KEY_LASTMOD = 1;
-    const ATTR_KEY_CHANGEFREQ = 2;
-    const ATTR_KEY_PRIORITY = 3;
-    const ATTR_KEY_ALTERNATES = 4;
+//    const ATTR_KEY_LOC = 0;
+//    const ATTR_KEY_LASTMOD = 1;
+//    const ATTR_KEY_CHANGEFREQ = 2;
+//    const ATTR_KEY_PRIORITY = 3;
+//    const ATTR_KEY_ALTERNATES = 4;
 
     const ATTR_NAME_LOC = 'loc';
     const ATTR_NAME_LASTMOD = 'lastmod';
@@ -145,16 +144,6 @@ class SitemapGenerator
         "http://www.bing.com/ping?sitemap=",
     ];
     /**
-     * Array with urls
-     * @var SplFixedArray of strings
-     * @access private
-     */
-    private $urls;
-    /**
-     * @var integer number of currently added urls
-     */
-    private $urlsCount = 0;
-    /**
      * Array with sitemap
      * @var array of strings
      * @access private
@@ -206,6 +195,11 @@ class SitemapGenerator
     private $runtime;
 
     /**
+     * @var UrlStorageInterface Object used to store added urls
+     */
+    private $urlStorage;
+
+    /**
      * @param string $baseURL You site URL
      * @param string $basePath Relative path where sitemap and robots should be stored.
      * @param IFileSystem $fs
@@ -213,7 +207,7 @@ class SitemapGenerator
      */
     public function __construct(string $baseURL, string $basePath = "", IFileSystem $fs = null, IRuntime $runtime = null)
     {
-        $this->urls = new SplFixedArray();
+        $this->urlStorage = new MemoryUrlStorage();
         $this->baseURL = $baseURL;
         $this->document = new DOMDocument("1.0");
         $this->document->preserveWhiteSpace = false;
@@ -330,46 +324,15 @@ class SitemapGenerator
                 sprintf("url is too large (%d of %d)", mb_strlen($loc), self::MAX_URL_LEN)
             );
         }
-        $tmp = new SplFixedArray(1);
-
-        $tmp[self::ATTR_KEY_LOC] = $loc;
-
-        if (isset($lastModified)) {
-            $tmp->setSize(2);
-            $tmp[self::ATTR_KEY_LASTMOD] = $lastModified->format(DateTime::ATOM);
-        }
-
         if (isset($changeFrequency)) {
             if ($this->isValidChangefreqValue($changeFrequency) === false) {
                 throw new InvalidArgumentException(
                     'invalid change frequency passed, valid values are: %s' . implode(',', $this->validChangefreqValues)
                 );
             }
-            $tmp->setSize(3);
-            $tmp[self::ATTR_KEY_CHANGEFREQ] = $changeFrequency;
         }
 
-        if (isset($priority)) {
-            $tmp->setSize(4);
-            $tmp[self::ATTR_KEY_PRIORITY] = $priority;
-        }
-
-        if (isset($alternates)) {
-            $tmp->setSize(5);
-            $tmp[self::ATTR_KEY_ALTERNATES] = $alternates;
-        }
-
-        if ($this->urls->getSize() === 0) {
-            $this->urls->setSize(1);
-        } else {
-            if ($this->urls->getSize() === $this->urls->key()) {
-                $this->urls->setSize($this->urls->getSize() * 2);
-            }
-        }
-
-        $this->urls[$this->urls->key()] = $tmp;
-        $this->urls->next();
-        $this->urlsCount++;
+        $this->urlStorage->add($loc, $lastModified, $changeFrequency, $priority, $alternates);
         return $this;
     }
 
@@ -386,7 +349,7 @@ class SitemapGenerator
      */
     public function createSitemap(): SitemapGenerator
     {
-        if ($this->urls->getSize() === 0) {
+        if ($this->urlStorage->count() === 0) {
             throw new BadMethodCallException(
                 "No urls added to generator. " .
                 "Please add urls by calling \"addUrl\" function."
@@ -420,33 +383,33 @@ class SitemapGenerator
         ]);
 
         $chunkSize = $this->maxURLsPerSitemap;
-        $chunksCount = ceil($this->urlsCount / $chunkSize);
+        $chunksCount = ceil($this->urlStorage->count() / $chunkSize);
 
         for ($chunkCounter = 0; $chunkCounter < $chunksCount; $chunkCounter++) {
             $sitemapXml = new SimpleXMLElement($sitemapHeader);
             for ($urlCounter = $chunkCounter * $chunkSize;
-                 $urlCounter < ($chunkCounter + 1) * $chunkSize && $urlCounter < $this->urlsCount; $urlCounter++
+                 $urlCounter < ($chunkCounter + 1) * $chunkSize && $urlCounter < $this->urlStorage->count(); $urlCounter++
             ) {
                 $row = $sitemapXml->addChild('url');
 
                 $row->addChild(
                     self::ATTR_NAME_LOC,
-                    htmlspecialchars($this->baseURL . $this->urls[$urlCounter][self::ATTR_KEY_LOC], ENT_QUOTES, 'UTF-8')
+                    htmlspecialchars($this->baseURL . $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_LOC], ENT_QUOTES, 'UTF-8')
                 );
 
-                if ($this->urls[$urlCounter]->getSize() > 1) {
-                    if (isset($this->urls[$urlCounter][self::ATTR_KEY_LASTMOD])) {
-                        $row->addChild(self::ATTR_NAME_LASTMOD, $this->urls[$urlCounter][self::ATTR_KEY_LASTMOD]);
+                if ($this->urlStorage->current()->getSize() > 1) {
+                    if (isset($this->urlStorage->current()[$this->urlStorage::ATTR_KEY_LASTMOD])) {
+                        $row->addChild(self::ATTR_NAME_LASTMOD, $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_LASTMOD]);
                     }
                 }
-                if ($this->urls[$urlCounter]->getSize() > 2) {
-                    $row->addChild(self::ATTR_NAME_CHANGEFREQ, $this->urls[$urlCounter][self::ATTR_KEY_CHANGEFREQ]);
+                if ($this->urlStorage->current()->getSize() > 2) {
+                    $row->addChild(self::ATTR_NAME_CHANGEFREQ, $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_CHANGEFREQ]);
                 }
-                if ($this->urls[$urlCounter]->getSize() > 3) {
-                    $row->addChild(self::ATTR_NAME_PRIORITY, $this->urls[$urlCounter][self::ATTR_KEY_PRIORITY]);
+                if ($this->urlStorage->current()->getSize() > 3) {
+                    $row->addChild(self::ATTR_NAME_PRIORITY, $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_PRIORITY]);
                 }
-                if ($this->urls[$urlCounter]->getSize() > 4) {
-                    foreach ($this->urls[$urlCounter][self::ATTR_KEY_ALTERNATES] as $alternate) {
+                if ($this->urlStorage->current()->getSize() > 4) {
+                    foreach ($this->urlStorage->current()[$this->urlStorage::ATTR_KEY_ALTERNATES] as $alternate) {
                         if (isset($alternate['hreflang']) && isset($alternate['href'])) {
                             $tag = $row->addChild('link', null, null);
                             $tag->addAttribute('rel', 'alternate');
@@ -455,6 +418,7 @@ class SitemapGenerator
                         }
                     }
                 }
+                $this->urlStorage->next();
             }
 
             $sitemapStr = $sitemapXml->asXML();
@@ -667,45 +631,42 @@ class SitemapGenerator
     }
 
     /**
-     * Returns array of URLs
-     * Converts internal SplFixedArray to array
+     * Returns URLs as standard php array
+     *
+     * Converts internal SplFixedArray to standard array.
+     * Thus, in case if many urls added to url storage
+     * this method call may lead to insufficient memory errors
+     *
      * @return array array of URLs
      */
     public function getURLsArray(): array
     {
-        $urls = $this->urls->toArray();
-
-        /**
-         * @var int $key
-         * @var SplFixedArray $urlSplArr
-         */
-        foreach ($urls as $key => $urlSplArr) {
-            if (!is_null($urlSplArr)) {
-                $urlArr = $urlSplArr->toArray();
-                $url = [];
-                foreach ($urlArr as $paramIndex => $paramValue) {
-                    switch ($paramIndex) {
-                        case static::ATTR_KEY_LOC:
-                            $url[self::ATTR_NAME_LOC] = $paramValue;
-                            break;
-                        case static::ATTR_KEY_CHANGEFREQ:
-                            $url[self::ATTR_NAME_CHANGEFREQ] = $paramValue;
-                            break;
-                        case static::ATTR_KEY_LASTMOD:
-                            $url[self::ATTR_NAME_LASTMOD] = $paramValue;
-                            break;
-                        case static::ATTR_KEY_PRIORITY:
-                            $url[self::ATTR_NAME_PRIORITY] = $paramValue;
-                            break;
-                        case static::ATTR_KEY_ALTERNATES:
-                            $url[self::ATTR_NAME_ALTERNATES] = $paramValue;
-                            break;
-                    }
+        $urls = [];
+        while ($this->urlStorage->current() != null) {
+            $urlArr = $this->urlStorage->current()->toArray();
+            $url = [];
+            foreach ($urlArr as $paramIndex => $paramValue) {
+                switch ($paramIndex) {
+                    case $this->urlStorage::ATTR_KEY_LOC:
+                        $url[self::ATTR_NAME_LOC] = $paramValue;
+                        break;
+                    case $this->urlStorage::ATTR_KEY_CHANGEFREQ:
+                        $url[self::ATTR_NAME_CHANGEFREQ] = $paramValue;
+                        break;
+                    case $this->urlStorage::ATTR_KEY_LASTMOD:
+                        $url[self::ATTR_NAME_LASTMOD] = $paramValue;
+                        break;
+                    case $this->urlStorage::ATTR_KEY_PRIORITY:
+                        $url[self::ATTR_NAME_PRIORITY] = $paramValue;
+                        break;
+                    case $this->urlStorage::ATTR_KEY_ALTERNATES:
+                        $url[self::ATTR_NAME_ALTERNATES] = $paramValue;
+                        break;
                 }
-                $urls[$key] = $url;
             }
+            $urls[$this->urlStorage->key()] = $url;
+            $this->urlStorage->next();
         }
-
         return $urls;
     }
 
@@ -714,7 +675,7 @@ class SitemapGenerator
      */
     public function getURLsCount(): int
     {
-        return $this->urlsCount;
+        return $this->urlStorage->count();
     }
 
     /**
