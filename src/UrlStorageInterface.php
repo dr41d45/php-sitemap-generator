@@ -7,11 +7,11 @@ namespace Icamys\SitemapGenerator;
  */
 interface UrlStorageInterface
 {
-    const ATTR_KEY_LOC = 0;
-    const ATTR_KEY_LASTMOD = 1;
-    const ATTR_KEY_CHANGEFREQ = 2;
-    const ATTR_KEY_PRIORITY = 3;
-    const ATTR_KEY_ALTERNATES = 4;
+    const URL_KEY_LOC = 0;
+    const URL_KEY_LASTMOD = 1;
+    const URL_KEY_CHANGEFREQ = 2;
+    const URL_KEY_PRIORITY = 3;
+    const URL_KEY_ALTERNATES = 4;
 
     /**
      * Add array to storage

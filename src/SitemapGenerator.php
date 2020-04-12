@@ -390,22 +390,22 @@ class SitemapGenerator
 
                 $row->addChild(
                     self::ATTR_NAME_LOC,
-                    htmlspecialchars($this->baseURL . $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_LOC], ENT_QUOTES, self::ENCODING)
+                    htmlspecialchars($this->baseURL . $this->urlStorage->current()[$this->urlStorage::URL_KEY_LOC], ENT_QUOTES, self::ENCODING)
                 );
 
                 if ($this->urlStorage->current()->getSize() > 1) {
-                    if (isset($this->urlStorage->current()[$this->urlStorage::ATTR_KEY_LASTMOD])) {
-                        $row->addChild(self::ATTR_NAME_LASTMOD, $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_LASTMOD]);
+                    if (isset($this->urlStorage->current()[$this->urlStorage::URL_KEY_LASTMOD])) {
+                        $row->addChild(self::ATTR_NAME_LASTMOD, $this->urlStorage->current()[$this->urlStorage::URL_KEY_LASTMOD]);
                     }
                 }
                 if ($this->urlStorage->current()->getSize() > 2) {
-                    $row->addChild(self::ATTR_NAME_CHANGEFREQ, $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_CHANGEFREQ]);
+                    $row->addChild(self::ATTR_NAME_CHANGEFREQ, $this->urlStorage->current()[$this->urlStorage::URL_KEY_CHANGEFREQ]);
                 }
                 if ($this->urlStorage->current()->getSize() > 3) {
-                    $row->addChild(self::ATTR_NAME_PRIORITY, $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_PRIORITY]);
+                    $row->addChild(self::ATTR_NAME_PRIORITY, $this->urlStorage->current()[$this->urlStorage::URL_KEY_PRIORITY]);
                 }
                 if ($this->urlStorage->current()->getSize() > 4) {
-                    foreach ($this->urlStorage->current()[$this->urlStorage::ATTR_KEY_ALTERNATES] as $alternate) {
+                    foreach ($this->urlStorage->current()[$this->urlStorage::URL_KEY_ALTERNATES] as $alternate) {
                         if (isset($alternate['hreflang']) && isset($alternate['href'])) {
                             $tag = $row->addChild('link', null, null);
                             $tag->addAttribute('rel', 'alternate');
@@ -643,19 +643,19 @@ class SitemapGenerator
             $url = [];
             foreach ($urlArr as $paramIndex => $paramValue) {
                 switch ($paramIndex) {
-                    case $this->urlStorage::ATTR_KEY_LOC:
+                    case $this->urlStorage::URL_KEY_LOC:
                         $url[self::ATTR_NAME_LOC] = $paramValue;
                         break;
-                    case $this->urlStorage::ATTR_KEY_CHANGEFREQ:
+                    case $this->urlStorage::URL_KEY_CHANGEFREQ:
                         $url[self::ATTR_NAME_CHANGEFREQ] = $paramValue;
                         break;
-                    case $this->urlStorage::ATTR_KEY_LASTMOD:
+                    case $this->urlStorage::URL_KEY_LASTMOD:
                         $url[self::ATTR_NAME_LASTMOD] = $paramValue;
                         break;
-                    case $this->urlStorage::ATTR_KEY_PRIORITY:
+                    case $this->urlStorage::URL_KEY_PRIORITY:
                         $url[self::ATTR_NAME_PRIORITY] = $paramValue;
                         break;
-                    case $this->urlStorage::ATTR_KEY_ALTERNATES:
+                    case $this->urlStorage::URL_KEY_ALTERNATES:
                         $url[self::ATTR_NAME_ALTERNATES] = $paramValue;
                         break;
                 }

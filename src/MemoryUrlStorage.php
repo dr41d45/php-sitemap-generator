@@ -96,26 +96,26 @@ class MemoryUrlStorage implements UrlStorageInterface, UrlIteratorInterface
     {
         $item = new \SplFixedArray(1);
 
-        $item[self::ATTR_KEY_LOC] = $loc;
+        $item[self::URL_KEY_LOC] = $loc;
 
         if (isset($lastModified)) {
             $item->setSize(2);
-            $item[self::ATTR_KEY_LASTMOD] = $lastModified->format(\DateTime::ATOM);
+            $item[self::URL_KEY_LASTMOD] = $lastModified->format(\DateTime::ATOM);
         }
 
         if (isset($changeFrequency)) {
             $item->setSize(3);
-            $item[self::ATTR_KEY_CHANGEFREQ] = $changeFrequency;
+            $item[self::URL_KEY_CHANGEFREQ] = $changeFrequency;
         }
 
         if (isset($priority)) {
             $item->setSize(4);
-            $item[self::ATTR_KEY_PRIORITY] = $priority;
+            $item[self::URL_KEY_PRIORITY] = $priority;
         }
 
         if (isset($alternates)) {
             $item->setSize(5);
-            $item[self::ATTR_KEY_ALTERNATES] = $alternates;
+            $item[self::URL_KEY_ALTERNATES] = $alternates;
         }
 
         return $item;
