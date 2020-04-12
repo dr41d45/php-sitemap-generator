@@ -11,26 +11,6 @@ use OutOfRangeException;
 use RuntimeException;
 use SimpleXMLElement;
 
-interface IFileSystem
-{
-    public function file_get_contents($filepath);
-
-    public function file_put_contents($filepath, $content);
-
-    public function file_exists($filepath);
-
-    public function gzopen($filepath, $mode);
-
-    public function gzwrite($file, $content);
-
-    public function gzclose($file);
-}
-
-interface IRuntime
-{
-    public function extension_loaded($extname);
-}
-
 /**
  * Class SitemapGenerator
  * @package Icamys\SitemapGenerator
@@ -182,11 +162,11 @@ class SitemapGenerator
         'never',
     ];
     /**
-     * @var IFileSystem object used to communicate with file system
+     * @var FileSystemInterface object used to communicate with file system
      */
     private $fs;
     /**
-     * @var IRuntime object used to communicate with runtime
+     * @var RuntimeInterface object used to communicate with runtime
      */
     private $runtime;
 
@@ -198,10 +178,10 @@ class SitemapGenerator
     /**
      * @param string $baseURL You site URL
      * @param string $basePath Relative path where sitemap and robots should be stored.
-     * @param IFileSystem $fs
-     * @param IRuntime $runtime
+     * @param FileSystemInterface $fs
+     * @param RuntimeInterface $runtime
      */
-    public function __construct(string $baseURL, string $basePath = "", IFileSystem $fs = null, IRuntime $runtime = null)
+    public function __construct(string $baseURL, string $basePath = "", FileSystemInterface $fs = null, RuntimeInterface $runtime = null)
     {
         $this->urlStorage = new MemoryUrlStorage();
         $this->baseURL = $baseURL;
@@ -738,46 +718,5 @@ class SitemapGenerator
     private function getSampleRobotsContent(): string
     {
         return implode(PHP_EOL, $this->sampleRobotsLines) . PHP_EOL;
-    }
-}
-
-class FileSystem implements IFileSystem
-{
-    public function file_get_contents($filepath)
-    {
-        return file_get_contents($filepath);
-    }
-
-    public function file_put_contents($filepath, $content)
-    {
-        return file_put_contents($filepath, $content);
-    }
-
-    public function gzopen($filepath, $mode)
-    {
-        return gzopen($filepath, $mode);
-    }
-
-    public function gzwrite($file, $content)
-    {
-        return gzwrite($file, $content);
-    }
-
-    public function gzclose($file)
-    {
-        return gzclose($file);
-    }
-
-    public function file_exists($filepath)
-    {
-        return file_exists($filepath);
-    }
-}
-
-class Runtime implements IRuntime
-{
-    public function extension_loaded($extname)
-    {
-        return extension_loaded($extname);
     }
 }
