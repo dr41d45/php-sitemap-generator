@@ -388,24 +388,26 @@ class SitemapGenerator
             ) {
                 $row = $sitemapXml->addChild('url');
 
+                $url = $this->urlStorage->current();
+
                 $row->addChild(
                     self::ATTR_NAME_LOC,
-                    htmlspecialchars($this->baseURL . $this->urlStorage->current()[$this->urlStorage::URL_KEY_LOC], ENT_QUOTES, self::ENCODING)
+                    htmlspecialchars($this->baseURL . $url[$this->urlStorage::URL_KEY_LOC], ENT_QUOTES, self::ENCODING)
                 );
 
-                if ($this->urlStorage->current()->getSize() > 1) {
-                    if (isset($this->urlStorage->current()[$this->urlStorage::URL_KEY_LASTMOD])) {
-                        $row->addChild(self::ATTR_NAME_LASTMOD, $this->urlStorage->current()[$this->urlStorage::URL_KEY_LASTMOD]);
+                if ($url->getSize() > 1) {
+                    if (isset($url[$this->urlStorage::URL_KEY_LASTMOD])) {
+                        $row->addChild(self::ATTR_NAME_LASTMOD, $url[$this->urlStorage::URL_KEY_LASTMOD]);
                     }
                 }
-                if ($this->urlStorage->current()->getSize() > 2) {
-                    $row->addChild(self::ATTR_NAME_CHANGEFREQ, $this->urlStorage->current()[$this->urlStorage::URL_KEY_CHANGEFREQ]);
+                if ($url->getSize() > 2) {
+                    $row->addChild(self::ATTR_NAME_CHANGEFREQ, $url[$this->urlStorage::URL_KEY_CHANGEFREQ]);
                 }
-                if ($this->urlStorage->current()->getSize() > 3) {
-                    $row->addChild(self::ATTR_NAME_PRIORITY, $this->urlStorage->current()[$this->urlStorage::URL_KEY_PRIORITY]);
+                if ($url->getSize() > 3) {
+                    $row->addChild(self::ATTR_NAME_PRIORITY, $url[$this->urlStorage::URL_KEY_PRIORITY]);
                 }
-                if ($this->urlStorage->current()->getSize() > 4) {
-                    foreach ($this->urlStorage->current()[$this->urlStorage::URL_KEY_ALTERNATES] as $alternate) {
+                if ($url->getSize() > 4) {
+                    foreach ($url[$this->urlStorage::URL_KEY_ALTERNATES] as $alternate) {
                         if (isset($alternate['hreflang']) && isset($alternate['href'])) {
                             $tag = $row->addChild('link', null, null);
                             $tag->addAttribute('rel', 'alternate');
