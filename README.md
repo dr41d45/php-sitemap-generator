@@ -19,7 +19,7 @@ Usage example:
 ```php
 <?php
 
-include "src/SitemapGenerator.php";
+include "vendor/autoload.php";
 
 // Setting the current working directory to be output directory
 // for generated sitemaps (and, if needed, robots.txt)
