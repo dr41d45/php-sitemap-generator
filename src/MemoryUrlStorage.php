@@ -13,11 +13,7 @@ class MemoryUrlStorage implements UrlStorageInterface, UrlIteratorInterface
     /**
      * @var integer number of currently added urls
      */
-    private $urlsCount = 0;
-    /**
-     * @var int
-     */
-    private $cursor = 0;
+    private $count = 0;
 
     public function __construct()
     {
@@ -36,10 +32,9 @@ class MemoryUrlStorage implements UrlStorageInterface, UrlIteratorInterface
     ): UrlStorageInterface
     {
         $this->doubleSizeArrayIfNoSpaceLeft();
-        $item = $this->prepareArrayItem($loc, $lastModified, $changeFrequency, $priority, $alternates);
-        $this->urls[$this->urls->key()] = $item;
-        $this->urls->next();
-        $this->urlsCount++;
+        $item = $this->createItem($loc, $lastModified, $changeFrequency, $priority, $alternates);
+        $this->urls[$this->count] = $item;
+        $this->count++;
         return $this;
     }
 
@@ -48,7 +43,7 @@ class MemoryUrlStorage implements UrlStorageInterface, UrlIteratorInterface
      */
     public function count(): int
     {
-        return $this->urlsCount;
+        return $this->count;
     }
 
     /**
@@ -56,10 +51,7 @@ class MemoryUrlStorage implements UrlStorageInterface, UrlIteratorInterface
      */
     public function current(): ?\SplFixedArray
     {
-        if ($this->cursor >= $this->urlsCount) {
-            return null;
-        }
-        return $this->urls[$this->cursor];
+        return $this->urls->current();
     }
 
     /**
@@ -67,26 +59,26 @@ class MemoryUrlStorage implements UrlStorageInterface, UrlIteratorInterface
      */
     public function next(): void
     {
-        $this->cursor = $this->cursor + 1;
+        $this->urls->next();
     }
 
-    public function key(): int
+    public function rewind(): void
     {
-        return $this->cursor;
+        $this->urls->rewind();
     }
 
     private function doubleSizeArrayIfNoSpaceLeft()
     {
-        if ($this->urlsCount === 0) {
+        if ($this->count === 0) {
             $this->urls->setSize(1);
         } else {
-            if ($this->urlsCount === $this->urls->key()) {
-                $this->urls->setSize($this->urlsCount * 2);
+            if ($this->count === $this->urls->getSize()) {
+                $this->urls->setSize($this->count * 2);
             }
         }
     }
 
-    private function prepareArrayItem(
+    private function createItem(
         string $loc = '',
         \DateTime $lastModified = null,
         string $changeFrequency = null,

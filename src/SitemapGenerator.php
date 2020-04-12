@@ -412,6 +412,9 @@ class SitemapGenerator
             }
             $this->sitemaps[] = $sitemapStr;
         }
+
+        $this->urlStorage->rewind();
+
         $sitemapsCount = count($this->sitemaps);
         if ($sitemapsCount > 1) {
             if ($sitemapsCount > self::MAX_SITEMAPS_PER_INDEX) {
@@ -620,8 +623,14 @@ class SitemapGenerator
     public function getURLsArray(): array
     {
         $urls = [];
-        while ($this->urlStorage->current() != null) {
-            $urlArr = $this->urlStorage->current()->toArray();
+
+        while (true) {
+            try {
+                $urlArr = $this->urlStorage->current()->toArray();
+            } catch (RuntimeException $ex) {
+                break;
+            }
+
             $url = [];
             foreach ($urlArr as $paramIndex => $paramValue) {
                 switch ($paramIndex) {
@@ -642,9 +651,12 @@ class SitemapGenerator
                         break;
                 }
             }
-            $urls[$this->urlStorage->key()] = $url;
+            $urls[] = $url;
             $this->urlStorage->next();
         }
+
+        $this->urlStorage->rewind();
+
         return $urls;
     }
 
