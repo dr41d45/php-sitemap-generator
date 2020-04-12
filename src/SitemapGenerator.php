@@ -61,11 +61,7 @@ class SitemapGenerator
      */
     const MAX_URL_LEN = 2048;
 
-//    const ATTR_KEY_LOC = 0;
-//    const ATTR_KEY_LASTMOD = 1;
-//    const ATTR_KEY_CHANGEFREQ = 2;
-//    const ATTR_KEY_PRIORITY = 3;
-//    const ATTR_KEY_ALTERNATES = 4;
+    const ENCODING = 'UTF-8';
 
     const ATTR_NAME_LOC = 'loc';
     const ATTR_NAME_LASTMOD = 'lastmod';
@@ -363,7 +359,7 @@ class SitemapGenerator
         ]);
 
         $sitemapHeader = implode(PHP_EOL, [
-            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<?xml version="1.0" encoding="' . self::ENCODING . '"?>',
             $generatorInfo,
             '<urlset',
             'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
@@ -373,7 +369,7 @@ class SitemapGenerator
         ]);
 
         $sitemapIndexHeader = implode(PHP_EOL, [
-            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<?xml version="1.0" encoding="' . self::ENCODING . '"?>',
             $generatorInfo,
             '<sitemapindex',
             'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
@@ -394,7 +390,7 @@ class SitemapGenerator
 
                 $row->addChild(
                     self::ATTR_NAME_LOC,
-                    htmlspecialchars($this->baseURL . $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_LOC], ENT_QUOTES, 'UTF-8')
+                    htmlspecialchars($this->baseURL . $this->urlStorage->current()[$this->urlStorage::ATTR_KEY_LOC], ENT_QUOTES, self::ENCODING)
                 );
 
                 if ($this->urlStorage->current()->getSize() > 1) {
@@ -615,14 +611,14 @@ class SitemapGenerator
             $searchEngines[0][1];
         $result = [];
         for ($i = 0; $i < count($searchEngines); $i++) {
-            $submitSite = curl_init($searchEngines[$i] . htmlspecialchars($this->sitemapFullURL, ENT_QUOTES, 'UTF-8'));
+            $submitSite = curl_init($searchEngines[$i] . htmlspecialchars($this->sitemapFullURL, ENT_QUOTES, self::ENCODING));
             curl_setopt($submitSite, CURLOPT_RETURNTRANSFER, true);
             $responseContent = curl_exec($submitSite);
             $response = curl_getinfo($submitSite);
             $submitSiteShort = array_reverse(explode(".", parse_url($searchEngines[$i], PHP_URL_HOST)));
             $result[] = [
                 "site" => $submitSiteShort[1] . "." . $submitSiteShort[0],
-                "fullsite" => $searchEngines[$i] . htmlspecialchars($this->sitemapFullURL, ENT_QUOTES, 'UTF-8'),
+                "fullsite" => $searchEngines[$i] . htmlspecialchars($this->sitemapFullURL, ENT_QUOTES, self::ENCODING),
                 "http_code" => $response['http_code'],
                 "message" => str_replace("\n", " ", strip_tags($responseContent)),
             ];
