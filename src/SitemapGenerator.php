@@ -36,6 +36,11 @@ class SitemapGenerator
     const MAX_SITEMAPS_PER_INDEX = 50000;
 
     /**
+     * Total max number of URLs.
+     */
+    const TOTAL_MAX_URLS = self::MAX_URLS_PER_SITEMAP * self::MAX_SITEMAPS_PER_INDEX;
+
+    /**
      * Max url length according to spec.
      * @see https://www.sitemaps.org/protocol.html#xmlTagDefinitions
      */
@@ -324,6 +329,12 @@ class SitemapGenerator
                     'invalid change frequency passed, valid values are: %s' . implode(',', $this->validChangefreqValues)
                 );
             }
+        }
+
+        if ($this->urlStorage->count() >= self::TOTAL_MAX_URLS) {
+            throw new RuntimeException(sprintf(
+                'Too many urls for sitemap. Max value is %d', self::TOTAL_MAX_URLS
+            ));
         }
 
         $this->urlStorage->add($loc, $lastModified, $changeFrequency, $priority, $alternates);
