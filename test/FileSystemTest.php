@@ -21,6 +21,31 @@ class FileSystemTest extends TestCase
     private $filePutContentsSpy;
 
     /**
+     * @var Spy for fopen function
+     */
+    private $fopenSpy;
+
+    /**
+     * @var Spy for fclose function
+     */
+    private $fcloseSpy;
+
+    /**
+     * @var Spy for fputcsv function
+     */
+    private $fputcsvSpy;
+
+    /**
+     * @var Spy for fgetcsv function
+     */
+    private $fgetcsvSpy;
+
+    /**
+     * @var Spy for rewind function
+     */
+    private $rewindSpy;
+
+    /**
      * @var Spy for file_get_contents function
      */
     private $fileGetContentsSpy;
@@ -44,6 +69,38 @@ class FileSystemTest extends TestCase
      * @var Spy for gzclose function
      */
     private $gzcloseSpy;
+
+    public function testFopenCall() {
+        $this->fs->fopen('path', 'r');
+        $this->assertCount(1, $this->fopenSpy->getInvocations());
+        $this->assertEquals('path', $this->fopenSpy->getInvocations()[0]->getArguments()[0]);
+        $this->assertEquals('r', $this->fopenSpy->getInvocations()[0]->getArguments()[1]);
+    }
+
+    public function testFcloseCall() {
+        $this->fs->fclose('path');
+        $this->assertCount(1, $this->fcloseSpy->getInvocations());
+        $this->assertEquals('path', $this->fcloseSpy->getInvocations()[0]->getArguments()[0]);
+    }
+
+    public function testFputsCall() {
+        $this->fs->fputcsv('path', []);
+        $this->assertCount(1, $this->fputcsvSpy->getInvocations());
+        $this->assertEquals('path', $this->fputcsvSpy->getInvocations()[0]->getArguments()[0]);
+        $this->assertEquals([], $this->fputcsvSpy->getInvocations()[0]->getArguments()[1]);
+    }
+
+    public function testFgetsCall() {
+        $this->fs->fgetcsv('path');
+        $this->assertCount(1, $this->fgetcsvSpy->getInvocations());
+        $this->assertEquals('path', $this->fgetcsvSpy->getInvocations()[0]->getArguments()[0]);
+    }
+
+    public function testRewindCall() {
+        $this->fs->rewind('path');
+        $this->assertCount(1, $this->rewindSpy->getInvocations());
+        $this->assertEquals('path', $this->rewindSpy->getInvocations()[0]->getArguments()[0]);
+    }
 
     public function testFilePutContentsCall() {
         $this->fs->file_put_contents('path', 'contents');
@@ -90,6 +147,16 @@ class FileSystemTest extends TestCase
     protected function setUp(): void
     {
         $this->fs = new FileSystem();
+        $this->fopenSpy = new Spy(__NAMESPACE__, "fopen", function (){});
+        $this->fopenSpy->enable();
+        $this->fcloseSpy = new Spy(__NAMESPACE__, "fclose", function (){});
+        $this->fcloseSpy->enable();
+        $this->fputcsvSpy = new Spy(__NAMESPACE__, "fputcsv", function (){});
+        $this->fputcsvSpy->enable();
+        $this->fgetcsvSpy = new Spy(__NAMESPACE__, "fgetcsv", function (){});
+        $this->fgetcsvSpy->enable();
+        $this->rewindSpy = new Spy(__NAMESPACE__, "rewind", function (){});
+        $this->rewindSpy->enable();
         $this->filePutContentsSpy = new Spy(__NAMESPACE__, "file_put_contents", function (){});
         $this->filePutContentsSpy->enable();
         $this->fileGetContentsSpy = new Spy(__NAMESPACE__, "file_get_contents", function (){});
@@ -107,6 +174,11 @@ class FileSystemTest extends TestCase
     protected function tearDown(): void
     {
         unset($this->g);
+        $this->fopenSpy->disable();
+        $this->fcloseSpy->disable();
+        $this->fputcsvSpy->disable();
+        $this->fgetcsvSpy->disable();
+        $this->rewindSpy->disable();
         $this->filePutContentsSpy->disable();
         $this->fileGetContentsSpy->disable();
         $this->fileExistsSpy->disable();

@@ -175,15 +175,25 @@ class SitemapGenerator
      */
     private $urlStorage;
 
+    const STORAGE_TYPE_MEM = 0;
+    const STORAGE_TYPE_FS = 1;
+
     /**
-     * @param string $baseURL You site URL
+     * SitemapGenerator constructor.
+     * @param string $baseURL Your site URL
      * @param string $basePath Relative path where sitemap and robots should be stored.
-     * @param FileSystemInterface $fs
-     * @param RuntimeInterface $runtime
+     * @param int $storageType
+     * @param FileSystemInterface|null $fs
+     * @param RuntimeInterface|null $runtime
      */
-    public function __construct(string $baseURL, string $basePath = "", FileSystemInterface $fs = null, RuntimeInterface $runtime = null)
+    public function __construct(
+        string $baseURL,
+        string $basePath = "",
+        int $storageType = self::STORAGE_TYPE_MEM,
+        FileSystemInterface $fs = null,
+        RuntimeInterface $runtime = null
+    )
     {
-        $this->urlStorage = new MemoryUrlStorage();
         $this->baseURL = $baseURL;
         $this->document = new DOMDocument("1.0");
         $this->document->preserveWhiteSpace = false;
@@ -205,6 +215,14 @@ class SitemapGenerator
             $basePath = $basePath . DIRECTORY_SEPARATOR;
         }
         $this->basePath = $basePath;
+
+        if ($storageType === self::STORAGE_TYPE_MEM) {
+            $this->urlStorage = new MemoryUrlStorage();
+        } elseif ($storageType === self::STORAGE_TYPE_FS) {
+            $this->urlStorage = new FileSystemUrlStorage($basePath, FileSystemUrlStorage::DEFAULT_STORAGE_PATH, $this->fs);
+        } else {
+            throw new InvalidArgumentException('Unknown storage type');
+        }
     }
 
     /**
@@ -577,7 +595,7 @@ class SitemapGenerator
      * If You don't pass yahooAppId, Yahoo still will be informed,
      * but this method can be used once per day. If You will do this often,
      * message that limit was exceeded  will be returned from Yahoo.
-     * @param string $yahooAppId Your site Yahoo appid.
+     * @param string|null $yahooAppId Your site Yahoo appid.
      * @return array of messages and http codes from each search engine
      * @access public
      * @throws BadMethodCallException

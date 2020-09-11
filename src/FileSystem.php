@@ -4,6 +4,31 @@ namespace Icamys\SitemapGenerator;
 
 class FileSystem implements FileSystemInterface
 {
+    public function fopen($filepath, $mode)
+    {
+        return fopen($filepath, $mode);
+    }
+
+    public function fclose($filepath)
+    {
+        return fclose($filepath);
+    }
+
+    public function fputcsv($handle, $fields)
+    {
+        return fputcsv($handle, $fields);
+    }
+
+    public function fgetcsv($handle)
+    {
+        return fgetcsv($handle);
+    }
+
+    public function rewind($handle)
+    {
+        return rewind($handle);
+    }
+
     public function file_get_contents($filepath)
     {
         return file_get_contents($filepath);

@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use LengthException;
 use OutOfRangeException;
 use phpmock\phpunit\PHPMock;
-use phpmock\spy\Spy;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionException;
@@ -414,15 +413,21 @@ class SitemapGeneratorTest extends TestCase
         $this->g->writeSitemap();
     }
 
+    public function testCreateSitemapWithDefaultStorageType()
+    {
+        $this->g = new SitemapGenerator($this->testDomain, '');
+        $this->assertTrue(true);
+    }
+
     public function testCreateSitemapWithDefaultSitemap()
     {
-        $this->g = new SitemapGenerator($this->testDomain, '', null, $this->runtime);
+        $this->g = new SitemapGenerator($this->testDomain, '', SitemapGenerator::STORAGE_TYPE_MEM, null, $this->runtime);
         $this->assertTrue(true);
     }
 
     public function testCreateSitemapWithDefaultRuntime()
     {
-        $this->g = new SitemapGenerator($this->testDomain, '', $this->fs, null);
+        $this->g = new SitemapGenerator($this->testDomain, '', SitemapGenerator::STORAGE_TYPE_MEM, $this->fs, null);
         $this->assertTrue(true);
     }
 
@@ -473,6 +478,17 @@ class SitemapGeneratorTest extends TestCase
         $this->g->createSitemap();
     }
 
+    public function testCreateSitemapUnknownStorageTypeException() {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown storage type');
+        new SitemapGenerator($this->testDomain, 'path', -1);
+    }
+
+    public function testCreateSitemapWithFileSystemStorageType() {
+        new SitemapGenerator($this->testDomain, 'path', SitemapGenerator::STORAGE_TYPE_FS, $this->fs);
+        $this->assertTrue(true);
+    }
+
     public function testCreateGeneratorWithBasepathWithoutTrailingSlash() {
         $this->fs->expects($this->exactly(1))
             ->method('file_put_contents')
@@ -480,7 +496,7 @@ class SitemapGeneratorTest extends TestCase
                 [$this->equalTo('path/sitemap.xml'), $this->stringStartsWith('<?xml ')]
             );
 
-        $this->g = new SitemapGenerator($this->testDomain, 'path', $this->fs, $this->runtime);
+        $this->g = new SitemapGenerator($this->testDomain, 'path', SitemapGenerator::STORAGE_TYPE_MEM, $this->fs, $this->runtime);
         $this->g->setMaxURLsPerSitemap(1);
         $this->g->setSitemapFilename("sitemap.xml");
         $this->g->setSitemapIndexFilename("sitemap-index.xml");
@@ -661,7 +677,7 @@ class SitemapGeneratorTest extends TestCase
     {
         $this->fs = $this->createMock(FileSystem::class);
         $this->runtime = $this->createMock(Runtime::class);
-        $this->g = new SitemapGenerator($this->testDomain, '', $this->fs, $this->runtime);
+        $this->g = new SitemapGenerator($this->testDomain, '', SitemapGenerator::STORAGE_TYPE_MEM, $this->fs, $this->runtime);
         $this->now = new DateTime();
     }
 

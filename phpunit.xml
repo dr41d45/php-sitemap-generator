@@ -8,6 +8,9 @@
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">src</directory>
+            <exclude>
+                <directory suffix="Interface.php">src</directory>
+            </exclude>
         </whitelist>
     </filter>
 
