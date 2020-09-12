@@ -66,6 +66,31 @@ $generator->updateRobots();
 $generator->submitSitemap();
 ```
 
+### Advanced usage
+
+#### Dealing with insufficient RAM memory 
+
+If you get memory exhaustion errors such as:
+
+```
+PHP Fatal error: Allowed memory size of 134217728 bytes exhausted...
+```
+
+and you can't modify your php.ini file to use more memory, 
+there's an option to use your file system instead of RAM memory in order to store urls 
+before they will get written to sitemap.
+
+To use the file system instead of the memory just pass `SitemapGenerator::STORAGE_TYPE_FS` 
+as storage type parameter to the sitemap generator constructor and use this as you normally would:
+
+```php
+use \Icamys\SitemapGenerator\SitemapGenerator as SitemapGenerator;
+
+$generator = new SitemapGenerator('example.com', 'current-dir/', SitemapGenerator::STORAGE_TYPE_FS);
+
+// add urls, generate sitemap, write it to file...
+```
+
 ### Testing
 
 Run tests with command (tests may take some time):
