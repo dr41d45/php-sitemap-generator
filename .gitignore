@@ -2,3 +2,5 @@
 vendor
 coverage
 *.cache
+*.gz
+du
