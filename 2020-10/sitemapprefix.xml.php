@@ -11,6 +11,18 @@ foreach ($q as $k => $v) {
     $s .= '<sitemap>' . PHP_EOL . '<loc>https://traficero.com/sitemaps/' . strtolower($v) . "_sitemap.xml</loc>" . PHP_EOL . '</sitemap>' . PHP_EOL;
 }
 
+
+foreach ($q as $k => $v) {
+    $v = strtolower($v);
+    for ($x = 0; $x < 10; $x++) {
+        $s .= '<sitemap>' . PHP_EOL . '<loc>https://www.traficero.com/sitemaps/' . $v . "_" .$x. "_containers1.xml</loc>" . PHP_EOL . '</sitemap>' . PHP_EOL;
+        $s .= '<sitemap>' . PHP_EOL . '<loc>https://www.traficero.com/sitemaps/' . $v . "_" .$x. "_containers2.xml</loc>" . PHP_EOL . '</sitemap>' . PHP_EOL;
+    }
+
+} 
+
+
+
 $s .= '</sitemapindex>' . PHP_EOL;
 echo "FIN";
 // echo $s;
